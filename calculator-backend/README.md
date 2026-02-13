@@ -1,110 +1,165 @@
-# Calculator Backend Microservice
+# Calculator Backend
 
-REST API microservice for calculator operations built with Micronaut 4.x, Kotlin, and MVC architecture.
+REST API microservice for calculator operations. Built with **Micronaut 4.x**, **Kotlin**, and a clear MVC-style structure. Exposes binary operations (add, subtract, multiply, divide, power, percentage), unary operation (square root), validation, structured error responses, and OpenAPI documentation.
+
+---
+
+## Contents
+
+- [Tech stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Build and run](#build-and-run)
+- [API overview](#api-overview)
+- [Interactive documentation](#interactive-documentation)
+- [Error codes](#error-codes)
+- [Architecture and practices](#architecture-and-practices)
+- [CORS](#cors)
+
+---
+
+## Tech stack
+
+| Area        | Technology |
+|------------|------------|
+| Runtime    | Java 17, Kotlin 1.9 |
+| Framework  | Micronaut 4.x (Netty, Jackson, Validation, OpenAPI) |
+| Build      | Gradle 8.5 (wrapper included) |
+| Tests      | JUnit 5, Mockito Kotlin |
+| Coverage   | JaCoCo |
+
+---
 
 ## Prerequisites
 
-- JDK 17+
-- Gradle 8.5 (wrapper included)
+- **JDK 17+**
+- **Gradle 8.5** (wrapper is included; use `./gradlew` on Unix/macOS or `gradlew.bat` on Windows)
 
-## Build and Run
+---
+
+## Build and run
 
 ```bash
-# Build
+# Build (including tests)
 ./gradlew build
 
-# Run
+# Run the application
 ./gradlew run
+```
 
-# Test coverage report
+On Windows: `gradlew.bat build` and `gradlew.bat run`.
+
+The API is available at **http://localhost:8080**. Health: `GET http://localhost:8080/api/v1/health`.
+
+### Test coverage report
+
+```bash
 ./gradlew jacocoTestReport
-# Report: build/reports/jacoco/test/html/index.html
 ```
 
-## API Endpoints
+HTML report: `build/reports/jacoco/test/html/index.html`.
 
-Base URL: `http://localhost:8080/api/v1`
+### Fat JAR (for Docker / standalone run)
 
-### Binary Operations (POST)
-
-Request body:
-```json
-{"operand1": 10, "operand2": 5}
+```bash
+./gradlew shadowJar
 ```
 
-| Endpoint | Operation | Example |
-|----------|-----------|---------|
-| POST /add | Addition | 10 + 5 = 15 |
-| POST /subtract | Subtraction | 10 - 5 = 5 |
-| POST /multiply | Multiplication | 10 * 5 = 50 |
-| POST /divide | Division | 10 / 5 = 2 |
-| POST /power | Exponentiation | 2^3 = 8 |
-| POST /percentage | Percentage | 100 * 25% = 25 |
+Output: `build/libs/calculator-backend-0.1-all.jar`. Run with: `java -jar build/libs/calculator-backend-0.1-all.jar`.
 
-### Unary Operation (POST)
+---
 
-Request body for `/sqrt`:
-```json
-{"operand": 25}
-```
+## API overview
 
-### Health Check (GET)
+**Base URL:** `http://localhost:8080/api/v1`
 
-```
-GET /health
-```
+All operation endpoints expect `Content-Type: application/json`.
 
-Returns: `{"status": "UP"}`
+### Binary operations (POST)
 
-## Swagger UI
+Request body: `{"operand1": <number>, "operand2": <number>}`
 
-Documentación interactiva disponible en:
+| Endpoint         | Operation     | Example        |
+|------------------|---------------|----------------|
+| POST /add        | Addition      | 10 + 5 → 15    |
+| POST /subtract   | Subtraction   | 10 - 5 → 5     |
+| POST /multiply   | Multiplication| 10 × 5 → 50    |
+| POST /divide     | Division      | 10 / 5 → 2     |
+| POST /power      | Exponentiation| 2^3 → 8        |
+| POST /percentage | Percentage    | 100 × 25% → 25 |
+
+### Unary operation (POST)
+
+**POST /sqrt** — request body: `{"operand": <number>}`  
+Example: `{"operand": 25}` → `{"result": 5.0, "operation": "SQRT", "timestamp": "..."}`
+
+### Health (GET)
+
+**GET /health** — returns `{"status": "UP"}`.
+
+---
+
+## Interactive documentation
+
+When the application is running:
 
 - **Swagger UI:** http://localhost:8080/swagger-ui/
-- **OpenAPI YAML:** http://localhost:8080/swagger/calculator-api-1.0.yml
+- **OpenAPI spec (YAML):** http://localhost:8080/swagger/calculator-api-1.0.yml
 
-## cURL Examples
+Use Swagger UI to explore and call endpoints interactively.
+
+---
+
+## cURL examples
 
 ```bash
 # Addition
 curl -X POST http://localhost:8080/api/v1/add \
   -H "Content-Type: application/json" \
   -d '{"operand1": 10, "operand2": 5}'
-# Response: {"result":15.0,"operation":"ADD","timestamp":"..."}
+# → {"result":15.0,"operation":"ADD","timestamp":"..."}
 
-# Division by zero (error)
+# Division by zero (4xx error)
 curl -X POST http://localhost:8080/api/v1/divide \
   -H "Content-Type: application/json" \
   -d '{"operand1": 10, "operand2": 0}'
-# Response 400: {"errorCode":"CALC_001","message":"Division by zero",...}
+# → 400 {"errorCode":"CALC_001","message":"Division by zero",...}
 
 # Square root
 curl -X POST http://localhost:8080/api/v1/sqrt \
   -H "Content-Type: application/json" \
   -d '{"operand": 25}'
-# Response: {"result":5.0,"operation":"SQRT","timestamp":"..."}
+# → {"result":5.0,"operation":"SQRT","timestamp":"..."}
 
 # Health check
 curl http://localhost:8080/api/v1/health
 ```
 
-## Error Codes
+---
 
-| Code | Scenario |
-|------|----------|
+## Error codes
+
+The API returns JSON error bodies with a stable `errorCode` and a `message`. Use these for client-side handling and user-facing messages.
+
+| Code    | Scenario |
+|---------|----------|
 | CALC_001 | Division by zero |
-| CALC_002 | Invalid operand (NaN, Infinity, or wrong type e.g. string instead of number) |
+| CALC_002 | Invalid operand (NaN, Infinity, or wrong type) |
 | CALC_003 | Negative number for square root |
-| CALC_004 | Numerical overflow/underflow |
-| CALC_005 | Invalid percentage (not 0-100) |
-| CALC_006 | Validation error (null/missing operands) |
+| CALC_004 | Numerical overflow or underflow |
+| CALC_005 | Invalid percentage (must be 0–100) |
+| CALC_006 | Validation error (null or missing operands) |
 
-## Architecture
+---
 
-- **MVC**: Model (DTOs), View (JSON serialization), Controller (thin HTTP layer)
-- **TDD**: Service and controller developed with test-first approach
-- **Logging**: SLF4J with MDC for request ID traceability
+## Architecture and practices
+
+- **Structure:** Thin controllers, service layer for business logic, DTOs for requests/responses. Global exception handler and optional filter for consistent error JSON.
+- **API design:** REST over JSON, OpenAPI 3 spec and Swagger UI for documentation.
+- **Testing:** Unit and integration tests (JUnit 5, Mockito). Test-first approach where applicable.
+- **Logging:** SLF4J with MDC for request correlation where needed.
+
+---
 
 ## CORS
 
-Configured for `http://localhost:3000` (React frontend).
+CORS is enabled for the React frontend. Default allowed origin for local development: `http://localhost:3000`. For other origins or Docker (same-origin behind a reverse proxy), the backend can be configured via environment (e.g. `MICRONAUT_SERVER_CORS_CONFIGURATIONS_WEB_ALLOWED_ORIGINS`).

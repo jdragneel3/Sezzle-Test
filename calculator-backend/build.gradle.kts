@@ -3,6 +3,7 @@ plugins {
     id("io.micronaut.application") version "4.3.5"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.9.24"
     id("org.jetbrains.kotlin.kapt") version "1.9.24"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("jacoco")
 }
 
@@ -42,6 +43,15 @@ dependencies {
 
 application {
     mainClass.set("com.calculator.ApplicationKt")
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("calculator-backend")
+    archiveClassifier.set("all")
+    mergeServiceFiles()
+    manifest {
+        attributes("Main-Class" to application.mainClass.get())
+    }
 }
 
 tasks.withType<Test> {
