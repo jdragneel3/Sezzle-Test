@@ -1,0 +1,6 @@
+micronaut:
+  server:
+    port: -1  # Random port to avoid BindException when 8080 is in use
+  http:
+    client:
+      exception-on-error-status: false

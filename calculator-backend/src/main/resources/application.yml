@@ -1,0 +1,27 @@
+micronaut:
+  application:
+    name: calculator-service
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+  server:
+    port: 8080
+    cors:
+      enabled: true
+      configurations:
+        web:
+          allowed-origins:
+            - http://localhost:3000
+          allowed-methods:
+            - POST
+            - GET
+            - OPTIONS
+
+logger:
+  levels:
+    com.calculator: INFO
