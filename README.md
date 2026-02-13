@@ -8,12 +8,12 @@ Full-stack calculator application: REST API in Kotlin/Micronaut and web client i
 
 - [Tech stack](#tech-stack)
 - [Project structure](#project-structure)
-- [Requirements](#requirements)
-- [Quick start with Docker](#quick-start-with-docker)
-- [Local development](#local-development)
+- [Setup instructions](#setup-instructions)
+- [How to run the frontend and backend](#how-to-run-the-frontend-and-backend)
 - [Tests](#tests)
-- [API documentation](#api-documentation)
+- [API documentation and examples](#api-documentation-and-examples)
 - [Error codes](#error-codes)
+- [Design decisions and assumptions](#design-decisions-and-assumptions)
 
 ---
 
@@ -44,18 +44,22 @@ sezzle/
 
 ---
 
-## Requirements
+## Setup instructions
 
-- **Docker:** Docker and Docker Desktop running.
-- **Local run:**
-  - **Backend:** JDK 17+, Gradle 8.5 (wrapper included in repo).
+- **Option A – Docker (recommended):** Install [Docker](https://docs.docker.com/get-docker/) and ensure Docker Desktop (or the Docker daemon) is running. No need to install JDK or Node locally.
+- **Option B – Local:**
+  - **Backend:** JDK 17+, Gradle 8.5 (wrapper included in this repo; use `./gradlew` or `gradlew.bat` on Windows).
   - **Frontend:** Node.js 20+ and npm.
+
+Clone the repository (if needed) and open a terminal in the project root.
 
 ---
 
-## Quick start with Docker
+## How to run the frontend and backend
 
-Easiest way to run the full app (backend + frontend in one container):
+### Option 1: Single container (Docker)
+
+Easiest way to run both backend and frontend together:
 
 ```bash
 # From the repository root
@@ -71,11 +75,9 @@ If port 80 is already in use, run with another port (e.g. `docker run -p 3000:80
 - Requests to `/api` are proxied to the backend inside the same container.
 - No need to start backend or frontend separately.
 
----
+### Option 2: Backend and frontend separately (local)
 
-## Local development
-
-### 1. Backend (port 8080)
+**Step 1 – Backend (port 8080)**
 
 ```bash
 cd calculator-backend
@@ -86,7 +88,7 @@ On Windows: `gradlew.bat run`
 
 API is available at `http://localhost:8080`. Swagger UI: http://localhost:8080/swagger-ui/
 
-### 2. Frontend (port 3000)
+**Step 2 – Frontend (port 3000)**
 
 In a **separate terminal**:
 
@@ -123,16 +125,48 @@ npm run test:e2e             # E2E with Playwright (requires backend on 8080 and
 
 ---
 
-## API documentation
+## API documentation and examples
 
-With the backend running (local or Docker with frontend on same origin):
+The backend exposes a REST API. Base URL (when running locally or when using the Docker app’s proxy): **`http://localhost:8080/api/v1`**.
 
-- **Swagger UI:** http://localhost:8080/swagger-ui/
+- **Swagger UI (interactive):** http://localhost:8080/swagger-ui/
 - **OpenAPI YAML:** http://localhost:8080/swagger/calculator-api-1.0.yml
 
-**API base URL:** `http://localhost:8080/api/v1`
+### Example API calls
 
-Endpoint examples (POST, `Content-Type: application/json`):
+All operation endpoints use `Content-Type: application/json`. Success responses include `result`, `operation`, and `timestamp`; errors include `errorCode`, `message`, and `timestamp`.
+
+**Addition (POST /add)**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/add \
+  -H "Content-Type: application/json" \
+  -d '{"operand1": 10, "operand2": 5}'
+```
+
+Response: `{"result":15.0,"operation":"ADD","timestamp":"2025-02-13T..."}`
+
+**Division by zero (error)**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/divide \
+  -H "Content-Type: application/json" \
+  -d '{"operand1": 10, "operand2": 0}'
+```
+
+Response (400): `{"errorCode":"CALC_001","message":"Division by zero",...}`
+
+**Square root (POST /sqrt)**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/sqrt \
+  -H "Content-Type: application/json" \
+  -d '{"operand": 25}'
+```
+
+Response: `{"result":5.0,"operation":"SQRT","timestamp":"..."}`
+
+### Endpoint summary
 
 | Operation   | Endpoint      | Body (example)              |
 |------------|---------------|-----------------------------|
@@ -144,6 +178,15 @@ Endpoint examples (POST, `Content-Type: application/json`):
 | Percentage | POST /percentage | `{"operand1": 100, "operand2": 25}` |
 | Square root| POST /sqrt    | `{"operand": 25}`            |
 | Health     | GET /health   | —                            |
+
+---
+
+## Design decisions and assumptions
+
+- **Backend:** REST over JSON with a thin controller layer and a dedicated service for business logic. Validation and errors are centralized (global exception handler) with stable error codes (CALC_001–CALC_006) for client handling. OpenAPI/Swagger is used for documentation. Micronaut was chosen for a lightweight JVM API with good Kotlin support.
+- **Frontend:** Single-page app (React + TypeScript) with a reducer-based state for the calculator and a separate hook for API calls. The UI mimics a simple calculator keypad; backend performs all operations to keep logic and validation in one place. API base URL is configurable via env for local vs Docker/production.
+- **Docker:** One image runs both backend (fat JAR) and frontend (static files served by Nginx). Nginx proxies `/api` to the backend so the browser talks to a single origin; no CORS issues in that setup. Port 80 is used by default; another host port can be mapped if 80 is in use.
+- **Assumptions:** Backend and frontend are developed and versioned together. The API is internal to this app (no public multi-tenant API). Numbers are handled as doubles; edge cases (overflow, NaN, division by zero) are validated and return structured errors.
 
 ---
 
@@ -162,4 +205,4 @@ The API returns error responses with a code and message:
 
 ---
 
-For more backend detail (architecture, CORS, cURL examples), see `calculator-backend/README.md`.
+For more detail (backend architecture, CORS, extra cURL examples), see `calculator-backend/README.md`. For frontend structure and scripts, see `calculator-frontend/README.md`.

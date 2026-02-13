@@ -7,13 +7,13 @@ React + TypeScript single-page application for the calculator. Consumes the back
 ## Contents
 
 - [Tech stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Installation and run](#installation-and-run)
+- [Setup instructions](#setup-instructions)
+- [How to run](#how-to-run)
 - [Environment](#environment)
 - [Scripts](#scripts)
 - [Testing](#testing)
-- [API integration](#api-integration)
-- [Architecture](#architecture)
+- [API integration and examples](#api-integration-and-examples)
+- [Design decisions and assumptions](#design-decisions-and-assumptions)
 - [Accessibility](#accessibility)
 
 ---
@@ -32,21 +32,23 @@ React + TypeScript single-page application for the calculator. Consumes the back
 
 ---
 
-## Prerequisites
+## Setup instructions
 
-- **Node.js** 20+ (LTS recommended)
-- **Backend** running at `http://localhost:8080` for full-stack use and E2E tests (see [calculator-backend](../calculator-backend))
+- **Node.js** 20+ (LTS recommended) and **npm**.
+- For full-stack use and E2E tests, the **backend** must be running at `http://localhost:8080` (see [calculator-backend](../calculator-backend)).
+
+From the repository root, open a terminal in `calculator-frontend/`.
 
 ---
 
-## Installation and run
+## How to run
 
 ```bash
 npm install
 npm run dev
 ```
 
-The app runs at **http://localhost:3000**. With the backend on port 8080, Vite’s proxy forwards `/api` to the backend so the same origin is used in development.
+The app runs at **http://localhost:3000**. With the backend on port 8080, Vite’s proxy forwards `/api` to the backend so the same origin is used in development. To run backend and frontend together via Docker, see the [root README](../README.md).
 
 ---
 
@@ -99,24 +101,25 @@ On Windows use `gradlew.bat run` for the backend.
 
 ---
 
-## API integration
+## API integration and examples
+
+The frontend calls the backend REST API. Base URL is set via `VITE_API_URL` (default `http://localhost:8080/api/v1`). When using Vite’s dev proxy, requests to `/api` are forwarded to the backend.
 
 - **Docs (when backend is running):** http://localhost:8080/swagger-ui/ and http://localhost:8080/calculator-api-1.0
-- **Endpoints used:** `POST /api/v1/add`, `/subtract`, `/multiply`, `/divide`, `/power`, `/percentage`, `/sqrt` with JSON request bodies.
+- **Endpoints used:** `POST /api/v1/add`, `/subtract`, `/multiply`, `/divide`, `/power`, `/percentage`, `/sqrt` with JSON bodies.
 - **Success response:** `{ result, operation, timestamp }`.
-- **Error response:** `{ errorCode, message, details?, timestamp }` with codes CALC_001–CALC_006 (see backend README).
+- **Error response:** `{ errorCode, message, details?, timestamp }` with codes CALC_001–CALC_006 (see [calculator-backend](../calculator-backend)).
 
-Backend error codes are mapped to user-facing messages (e.g. CALC_001 → “Cannot divide by zero”); network failures show a generic connection message.
+**Example (conceptually):** A user taps “5”, “+”, “3”, “=”. The app sends `POST /api/v1/add` with `{"operand1": 5, "operand2": 3}` and displays the returned `result` (8.0). On error (e.g. division by zero), the app maps `errorCode` (e.g. CALC_001) to a user-facing message (“Cannot divide by zero”); network errors show a generic “Unable to connect” message.
 
 ---
 
-## Architecture
+## Design decisions and assumptions
 
-- **UI:** `Calculator` composes `Display`, `Keypad` (with reusable `Button`), `Spinner`, and error message area.
-- **State:** `useCalculator` (reducer) holds calculator state; `useApi` encapsulates API calls and error handling.
-- **API client:** `calculatorApi` in `services/` (Axios instance, base URL from env).
-- **Types:** `types/calculator.types.ts`, `types/api.types.ts`.
-- **Utils:** `formatNumber`, `validation`, `errorMessages` for display and validation.
+- **Architecture:** `Calculator` composes `Display`, `Keypad` (reusable `Button`), `Spinner`, and error area. State is in `useCalculator` (reducer); API calls and error handling are in `useApi`. The API client (`calculatorApi` in `services/`) uses Axios with base URL from env. Types live in `types/`; formatting and validation helpers in `utils/`.
+- **Why backend for operations:** All calculations and validation live on the backend so logic is in one place, testable via the API, and the frontend stays a thin UI layer.
+- **State and API:** The reducer holds display value, pending operation, and operands; `useApi` performs the HTTP call and maps backend errors to user-facing strings. This keeps UI and network concerns separated.
+- **Assumptions:** The app is used with the companion backend. API base URL is configurable for local vs Docker/production. We assume a modern browser (ES modules, fetch).
 
 ---
 

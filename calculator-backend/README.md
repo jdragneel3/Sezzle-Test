@@ -7,12 +7,11 @@ REST API microservice for calculator operations. Built with **Micronaut 4.x**, *
 ## Contents
 
 - [Tech stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Build and run](#build-and-run)
-- [API overview](#api-overview)
-- [Interactive documentation](#interactive-documentation)
+- [Setup instructions](#setup-instructions)
+- [How to run](#how-to-run)
+- [API overview and examples](#api-overview-and-examples)
 - [Error codes](#error-codes)
-- [Architecture and practices](#architecture-and-practices)
+- [Design decisions and assumptions](#design-decisions-and-assumptions)
 - [CORS](#cors)
 
 ---
@@ -29,14 +28,16 @@ REST API microservice for calculator operations. Built with **Micronaut 4.x**, *
 
 ---
 
-## Prerequisites
+## Setup instructions
 
-- **JDK 17+**
-- **Gradle 8.5** (wrapper is included; use `./gradlew` on Unix/macOS or `gradlew.bat` on Windows)
+- **JDK 17+** (OpenJDK or Oracle JDK).
+- **Gradle 8.5** — the project includes the Gradle wrapper; use `./gradlew` on Unix/macOS or `gradlew.bat` on Windows. No need to install Gradle globally.
+
+From the repository root, open a terminal in `calculator-backend/`.
 
 ---
 
-## Build and run
+## How to run
 
 ```bash
 # Build (including tests)
@@ -68,7 +69,7 @@ Output: `build/libs/calculator-backend-0.1-all.jar`. Run with: `java -jar build/
 
 ---
 
-## API overview
+## API overview and examples
 
 **Base URL:** `http://localhost:8080/api/v1`
 
@@ -96,20 +97,9 @@ Example: `{"operand": 25}` → `{"result": 5.0, "operation": "SQRT", "timestamp"
 
 **GET /health** — returns `{"status": "UP"}`.
 
----
+**Interactive documentation (when the app is running):** Swagger UI at http://localhost:8080/swagger-ui/ and OpenAPI YAML at http://localhost:8080/swagger/calculator-api-1.0.yml.
 
-## Interactive documentation
-
-When the application is running:
-
-- **Swagger UI:** http://localhost:8080/swagger-ui/
-- **OpenAPI spec (YAML):** http://localhost:8080/swagger/calculator-api-1.0.yml
-
-Use Swagger UI to explore and call endpoints interactively.
-
----
-
-## cURL examples
+### Example API calls (cURL)
 
 ```bash
 # Addition
@@ -151,12 +141,13 @@ The API returns JSON error bodies with a stable `errorCode` and a `message`. Use
 
 ---
 
-## Architecture and practices
+## Design decisions and assumptions
 
-- **Structure:** Thin controllers, service layer for business logic, DTOs for requests/responses. Global exception handler and optional filter for consistent error JSON.
-- **API design:** REST over JSON, OpenAPI 3 spec and Swagger UI for documentation.
-- **Testing:** Unit and integration tests (JUnit 5, Mockito). Test-first approach where applicable.
-- **Logging:** SLF4J with MDC for request correlation where needed.
+- **Architecture:** MVC-style: thin controllers (HTTP only), service layer for all calculator logic and validation, DTOs for request/response. A global exception handler and an optional response filter ensure a consistent JSON error shape (`errorCode`, `message`, `timestamp`).
+- **API design:** REST over JSON. OpenAPI 3 spec is generated from code; Swagger UI is served for interactive docs. All operations are POST (except health) with JSON bodies to keep the API uniform and easy to document.
+- **Validation and errors:** Operands are validated (NaN, Infinity, division by zero, negative sqrt, percentage range, overflow). Stable error codes (CALC_001–CALC_006) allow the frontend to show user-friendly messages without parsing free text.
+- **Testing:** JUnit 5 and Mockito for unit and integration tests; test-first where applicable. JaCoCo for coverage.
+- **Assumptions:** The API is used only by the companion React frontend (and optionally Swagger). Numbers are `Double`; we rely on the JVM and explicit checks for edge cases. CORS is configured for the frontend origin(s).
 
 ---
 
