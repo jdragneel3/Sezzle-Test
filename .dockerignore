@@ -1,0 +1,21 @@
+# Git
+.git
+.gitignore
+
+# Backend
+calculator-backend/.gradle
+calculator-backend/build
+
+# Frontend
+calculator-frontend/node_modules
+calculator-frontend/dist
+
+# IDE / OS
+.idea
+.vscode
+*.iml
+.DS_Store
+
+# Docs (opcional)
+README.md
+*.md
