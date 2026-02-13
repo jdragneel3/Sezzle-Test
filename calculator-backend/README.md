@@ -93,7 +93,7 @@ curl http://localhost:8080/api/v1/health
 | Code | Scenario |
 |------|----------|
 | CALC_001 | Division by zero |
-| CALC_002 | Invalid operand (NaN, Infinity) |
+| CALC_002 | Invalid operand (NaN, Infinity, or wrong type e.g. string instead of number) |
 | CALC_003 | Negative number for square root |
 | CALC_004 | Numerical overflow/underflow |
 | CALC_005 | Invalid percentage (not 0-100) |

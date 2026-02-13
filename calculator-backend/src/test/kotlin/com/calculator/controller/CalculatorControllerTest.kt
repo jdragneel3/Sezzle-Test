@@ -82,6 +82,20 @@ class CalculatorControllerTest(
     }
 
     @Test
+    fun `POST with invalid operand type returns 400 with CALC_002`() {
+        val request = HttpRequest.POST("/api/v1/add", """{"operand1": -11, "operand2": "a"}""")
+            .contentType(io.micronaut.http.MediaType.APPLICATION_JSON_TYPE)
+
+        val exception = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, ErrorResponse::class.java)
+        }
+        assertEquals(HttpStatus.BAD_REQUEST, exception.response.status)
+        val body = exception.response.getBody(ErrorResponse::class.java).orElseThrow()
+        assertEquals("CALC_002", body.errorCode)
+        assertEquals("Invalid operand type", body.message)
+    }
+
+    @Test
     fun `GET health returns 200 with UP status`() {
         val response = client.toBlocking().exchange("/api/v1/health", Map::class.java)
         assertEquals(HttpStatus.OK, response.status)
