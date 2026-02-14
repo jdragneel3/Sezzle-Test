@@ -1,12 +1,14 @@
 import { useReducer, useCallback } from 'react'
 import type { CalculatorState, Operation } from '../types/calculator.types'
 import { useApi } from './useApi'
+import { formatResultForDisplay } from '../utils/formatNumber'
 import {
   isDivisionByZero,
   isNegativeForSqrt,
 } from '../utils/validation'
 
 const MAX_DIGITS = 15
+const DIGIT_LIMIT_MESSAGE = 'Maximum 15 digits allowed'
 
 export type CalculatorAction =
   | { type: 'INPUT_DIGIT'; payload: string }
@@ -60,10 +62,7 @@ export function calculatorReducer(
       }
     case 'SET_RESULT': {
       const result = action.payload
-      const display =
-        Number.isInteger(result) && Math.abs(result) < 1e15
-          ? String(result)
-          : String(result)
+      const display = formatResultForDisplay(result)
       return {
         ...state,
         display,
@@ -98,7 +97,9 @@ export function calculatorReducer(
           newDisplay = state.display + digit
         }
       }
-      if (digitCount(newDisplay) > MAX_DIGITS) return state
+      if (digitCount(newDisplay) > MAX_DIGITS) {
+        return { ...state, error: DIGIT_LIMIT_MESSAGE }
+      }
       return {
         ...state,
         display: newDisplay,
@@ -119,6 +120,8 @@ export function calculatorReducer(
         newDisplay = '0.'
       } else if (state.display.includes('.')) {
         return state
+      } else if (digitCount(state.display) >= MAX_DIGITS) {
+        return { ...state, error: DIGIT_LIMIT_MESSAGE }
       } else {
         newDisplay = state.display + '.'
       }
@@ -142,9 +145,10 @@ export function calculatorReducer(
     }
 
     case 'BACKSPACE': {
-      if (state.error) return state
+      if (state.error && state.error !== DIGIT_LIMIT_MESSAGE) return state
+      const hadDigitLimitError = state.error === DIGIT_LIMIT_MESSAGE
       if (state.display === '0' || state.display.length <= 1) {
-        return { ...state, display: '0', currentValue: 0 }
+        return { ...state, display: '0', currentValue: 0, error: hadDigitLimitError ? null : state.error }
       }
       const next = state.display.slice(0, -1)
       const newDisplay = next === '' || next === '-' ? '0' : next
@@ -152,6 +156,7 @@ export function calculatorReducer(
         ...state,
         display: newDisplay,
         currentValue: parseDisplay(newDisplay),
+        error: hadDigitLimitError ? null : state.error,
       }
     }
 

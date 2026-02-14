@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatNumber } from './formatNumber'
+import { formatNumber, formatResultForDisplay } from './formatNumber'
 
 describe('formatNumber', () => {
   it('formats integer', () => {
@@ -29,5 +29,18 @@ describe('formatNumber', () => {
 
   it('handles decimal point only', () => {
     expect(formatNumber('.')).toBe('0')
+  })
+})
+
+describe('formatResultForDisplay', () => {
+  it('formats large numbers without scientific notation when possible', () => {
+    expect(formatResultForDisplay(1e15)).toBe('1000000000000000')
+    expect(formatResultForDisplay(1e16)).toBe('10000000000000000')
+    expect(formatResultForDisplay(-1e15)).toBe('-1000000000000000')
+  })
+
+  it('uses scientific notation for very large numbers', () => {
+    const result = formatResultForDisplay(1e25)
+    expect(result).toMatch(/^1\.0000e\+25$/)
   })
 })

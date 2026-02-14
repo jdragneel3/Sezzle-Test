@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.84% </span>
+                <span class="strong">49.2% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>30/59</span>
+                <span class='fraction'>31/63</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">53.33% </span>
+                <span class="strong">44.44% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/15</span>
+                <span class='fraction'>8/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">48.21% </span>
+                <span class="strong">47.45% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>27/56</span>
+                <span class='fraction'>28/59</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -188,7 +188,21 @@
 <a name='L123'></a><a href='#L123'>123</a>
 <a name='L124'></a><a href='#L124'>124</a>
 <a name='L125'></a><a href='#L125'>125</a>
-<a name='L126'></a><a href='#L126'>126</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -198,6 +212,7 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -295,6 +310,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -310,10 +336,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useEffect, useCallback, useRef } from 'react'
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useEffect, useCallback, useRef, useState } from 'react'
 import { useCalculator } from '../../hooks/useCalculator'
 import type { Operation } from '../../types/calculator.types'
 import { Display } from './Display'
@@ -325,6 +353,7 @@ const ERROR_AUTO_DISMISS_MS = 3000
 export function Calculator() {
   const { state, dispatch, handleCalculate, handleSqrt } = useCalculator()
   const timeoutRef = useRef&lt;ReturnType&lt;typeof setTimeout&gt; | null&gt;(null)
+  const [showExtraRow, setShowExtraRow] = useState(false)
 &nbsp;
   useEffect(() =&gt; {
     if (!state.error) return
@@ -416,6 +445,17 @@ export function Calculator() {
       aria-label="Calculator"
     &gt;
       &lt;Display main={state.display} secondary={secondary} /&gt;
+      {/* Fila debajo del display: botón borrar a la derecha, sin tapar los números */}
+      &lt;div className="flex justify-end bg-gray-800 px-3 pb-2 -mt-1"&gt;
+        &lt;button
+          type="button"
+          onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >d</span>ispatch({ type: 'BACKSPACE' })}</span>
+          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center text-lg font-medium focus:outline-none focus:ring-2 focus:ring-orange-500"
+          aria-label="Borrar último dígito"
+        &gt;
+          ⌫
+        &lt;/button&gt;
+      &lt;/div&gt;
       {state.error &amp;&amp; (
         &lt;div
           className="bg-red-900/90 text-red-100 text-sm text-center py-2 px-3"
@@ -434,6 +474,8 @@ export function Calculator() {
         onOperation={handleOperator}
         onEquals={handleEquals}
         onSqrt={handleSqrt}
+        showExtraRow={showExtraRow}
+        onToggleExtraRow={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etShowExtraRow(<span class="fstat-no" title="function not covered" >(s</span>) =&gt; <span class="cstat-no" title="statement not covered" >!s)</span>}</span>
       /&gt;
     &lt;/div&gt;
   )
@@ -445,7 +487,7 @@ export function Calculator() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-13T22:23:45.061Z
+                at 2026-02-14T01:26:30.417Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

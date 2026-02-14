@@ -7,6 +7,9 @@ interface DisplayProps {
 
 export function Display({ main, secondary }: DisplayProps) {
   const formatted = formatNumber(main)
+  const digitCount = main.replace(/[^0-9]/g, '').length
+  const sizeClass =
+    digitCount > 12 ? 'text-2xl sm:text-3xl' : 'text-4xl sm:text-5xl'
   return (
     <div
       className="bg-gray-800 text-white rounded-t-2xl p-4 min-h-[120px] flex flex-col justify-end text-right"
@@ -18,7 +21,9 @@ export function Display({ main, secondary }: DisplayProps) {
           {secondary}
         </div>
       )}
-      <div className="text-4xl sm:text-5xl font-light truncate tabular-nums">
+      <div
+        className={`font-light tabular-nums overflow-x-auto overflow-y-hidden whitespace-nowrap ${sizeClass}`}
+      >
         {formatted}
       </div>
     </div>
