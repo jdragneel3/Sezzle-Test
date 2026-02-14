@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
@@ -126,7 +126,26 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -155,13 +174,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -180,10 +213,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -201,6 +231,8 @@ interface KeypadProps {
   onOperation: (op: Operation) =&gt; void
   onEquals: () =&gt; void
   onSqrt?: () =&gt; void
+  showExtraRow?: boolean
+  onToggleExtraRow?: () =&gt; void
 }
 &nbsp;
 export function Keypad({
@@ -212,20 +244,36 @@ export function Keypad({
   onOperation,
   onEquals,
   onSqrt,
+  showExtraRow = false,
+  onToggleExtraRow,
 }: KeypadProps) {
   return (
     &lt;div className="bg-gray-900 p-4 rounded-b-2xl grid grid-cols-4 gap-3"&gt;
-      {onSqrt &amp;&amp; (
+      {/* Fila extra desplegable hacia arriba: √, xʸ (aparece sobre la primera fila) */}
+      {showExtraRow &amp;&amp; onSqrt &amp;&amp; (
         &lt;&gt;
           &lt;Button label="√" type="function" onClick={onSqrt} /&gt;
           &lt;Button label="xʸ" type="function" onClick={() =&gt; onOperation('power')} /&gt;
+          &lt;span /&gt;
+          &lt;span /&gt;
         &lt;/&gt;
       )}
+&nbsp;
+      {/* Fila 1: AC, botón ⋯ (2ª columna), %, ÷ */}
       &lt;Button label="AC" type="clear" onClick={onClear} /&gt;
-      &lt;Button label="+/-" type="function" onClick={onToggleSign} /&gt;
+      {onToggleExtraRow ? (
+        &lt;Button
+          label={showExtraRow ? <span class="branch-0 cbranch-no" title="branch not covered" >'▲' : '</span>⋯'}
+          type="function"
+          onClick={onToggleExtraRow}
+        /&gt;
+      ) : (
+        &lt;div aria-hidden /&gt;
+      )}
       &lt;Button label="%" type="function" onClick={onPercentage} /&gt;
       &lt;Button label="÷" type="operator" onClick={() =&gt; onOperation('divide')} /&gt;
 &nbsp;
+      {/* Filas 2-4: números y operadores en columna derecha */}
       &lt;Button label="7" type="number" onClick={() =&gt; onDigit('7')} /&gt;
       &lt;Button label="8" type="number" onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nDigit('8')} /</span>&gt;
       &lt;Button label="9" type="number" onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nDigit('9')} /</span>&gt;
@@ -241,12 +289,9 @@ export function Keypad({
       &lt;Button label="3" type="number" onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nDigit('3')} /</span>&gt;
       &lt;Button label="+" type="operator" onClick={() =&gt; onOperation('add')} /&gt;
 &nbsp;
-      &lt;Button
-        label="0"
-        type="number"
-        gridColumn="span 2"
-        onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nDigit('0')}</span>
-      /&gt;
+      {/* Última fila: cambiar signo, cero, punto, igual */}
+      &lt;Button label="+/-" type="function" onClick={onToggleSign} /&gt;
+      &lt;Button label="0" type="number" onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nDigit('0')} /</span>&gt;
       &lt;Button label="." type="number" onClick={onDecimal} /&gt;
       &lt;Button label="=" type="equals" onClick={onEquals} /&gt;
     &lt;/div&gt;
@@ -259,7 +304,7 @@ export function Keypad({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-13T22:23:45.061Z
+                at 2026-02-14T01:26:30.417Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
