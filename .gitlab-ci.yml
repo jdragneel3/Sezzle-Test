@@ -1,0 +1,42 @@
+stages:
+  - test
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+backend:test:
+  stage: test
+  image: eclipse-temurin:17
+  cache:
+    key: backend-gradle
+    paths:
+      - calculator-backend/.gradle/
+  script:
+    - cd calculator-backend
+    - chmod +x gradlew
+    - ./gradlew test jacocoTestReport
+  artifacts:
+    when: always
+    reports:
+      junit: calculator-backend/build/test-results/test/**/TEST-*.xml
+    paths:
+      - calculator-backend/build/reports/jacoco/
+    expire_in: 7 days
+
+frontend:test:
+  stage: test
+  image: node:20
+  cache:
+    key: frontend-npm
+    paths:
+      - calculator-frontend/node_modules/
+  script:
+    - cd calculator-frontend
+    - npm ci
+    - npx vitest run
+    - npm run lint
+  artifacts:
+    when: on_failure
+    paths:
+      - calculator-frontend/
+    expire_in: 1 day

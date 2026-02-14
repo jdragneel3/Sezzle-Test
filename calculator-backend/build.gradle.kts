@@ -10,6 +10,12 @@ plugins {
 version = "0.1"
 group = "com.calculator"
 
+tasks.processResources {
+    filesMatching("application.yml") {
+        expand("projectVersion" to version)
+    }
+}
+
 val kotlinVersion = project.properties["kotlinVersion"] as String
 
 repositories {
@@ -85,6 +91,14 @@ micronaut {
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+    classDirectories.setFrom(
+        fileTree("$buildDir/classes/kotlin/main") {
+            exclude(
+                "com/calculator/Application.class",
+                "com/calculator/ApplicationKt.class"
+            )
+        }
+    )
     reports {
         xml.required.set(true)
         html.required.set(true)

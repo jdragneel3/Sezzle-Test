@@ -1,3 +1,6 @@
+ratelimit:
+  enabled: false
+
 micronaut:
   server:
     port: -1  # Random port to avoid BindException when 8080 is in use

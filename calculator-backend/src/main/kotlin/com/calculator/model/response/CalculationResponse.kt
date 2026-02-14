@@ -7,5 +7,5 @@ import java.time.Instant
 data class CalculationResponse(
     val result: Double,
     val operation: String,
-    val timestamp: Instant
+    val timestamp: Instant = Instant.now()
 )

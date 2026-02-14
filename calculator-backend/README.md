@@ -138,6 +138,26 @@ The API returns JSON error bodies with a stable `errorCode` and a `message`. Use
 | CALC_004 | Numerical overflow or underflow |
 | CALC_005 | Invalid percentage (must be 0–100) |
 | CALC_006 | Validation error (null or missing operands) |
+| RATE_001 | Rate limit exceeded (429 Too Many Requests) |
+
+---
+
+## Rate limiting
+
+The API implements rate limiting via an `HttpServerFilter` to protect against DoS and API abuse. Requests are limited per client IP (using `X-Forwarded-For`, `X-Real-IP`, or remote address).
+
+**Configuration** (in `application.yml` or environment):
+
+```yaml
+ratelimit:
+  enabled: true
+  limit: 100          # max requests per window
+  window-seconds: 60  # window duration
+  exclude-paths:
+    - /api/v1/health  # health check excluded
+```
+
+When the limit is exceeded, the API returns **429 Too Many Requests** with `errorCode: "RATE_001"`. The rate limiter uses in-memory fixed-window counters; for multi-instance deployments, consider a shared store (e.g., Redis).
 
 ---
 
@@ -153,4 +173,33 @@ The API returns JSON error bodies with a stable `errorCode` and a `message`. Use
 
 ## CORS
 
-CORS is enabled for the React frontend. Default allowed origin for local development: `http://localhost:3000`. For other origins or Docker (same-origin behind a reverse proxy), the backend can be configured via environment (e.g. `MICRONAUT_SERVER_CORS_CONFIGURATIONS_WEB_ALLOWED_ORIGINS`).
+CORS is enabled for the React frontend. Default allowed origins: `http://localhost:3000` (Vite dev) and `http://localhost` (Docker/local).
+
+**Production / deployment:** Configure allowed origins via environment variable instead of using `*`:
+
+```bash
+# Docker
+docker run -e CORS_ALLOWED_ORIGINS="https://app.example.com" ...
+
+# Or Micronaut directly
+MICRONAUT_SERVER_CORS_CONFIGURATIONS_WEB_ALLOWED_ORIGINS="https://app.example.com" java -jar backend.jar
+```
+
+`CORS_ALLOWED_ORIGINS` is read by the Docker entrypoint and passed to Micronaut. For multiple origins, use comma-separated values: `https://app1.com,https://app2.com`.
+
+---
+
+## Security headers
+
+The API adds standard HTTP security headers to responses:
+
+| Header | Value |
+|--------|-------|
+| X-Content-Type-Options | nosniff |
+| X-Frame-Options | DENY |
+| Content-Security-Policy | default-src 'self'; script-src 'self'; ... |
+| Strict-Transport-Security | max-age=31536000; includeSubDomains (only when HTTPS) |
+
+- **Micronaut:** `SecurityHeadersFilter` adds these to `/api/**`, `/swagger/**`, `/swagger-ui/**`.
+- **Docker/Nginx:** Same headers are set at the Nginx layer for all traffic.
+- **HSTS:** Set only when the request is HTTPS or `X-Forwarded-Proto: https`. For production behind a TLS-terminating proxy, ensure the proxy forwards this header.

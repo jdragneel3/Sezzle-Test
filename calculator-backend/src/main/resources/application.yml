@@ -1,3 +1,13 @@
+app:
+  version: ${projectVersion}
+
+ratelimit:
+  enabled: true
+  limit: 100
+  window-seconds: 60
+  exclude-paths:
+    - /api/v1/health
+
 micronaut:
   application:
     name: calculator-service
@@ -15,8 +25,10 @@ micronaut:
       enabled: true
       configurations:
         web:
+          # Dev: Vite (3000). Docker: same-origin (localhost) or override via CORS_ALLOWED_ORIGINS.
           allowed-origins:
             - http://localhost:3000
+            - http://localhost
           allowed-methods:
             - POST
             - GET

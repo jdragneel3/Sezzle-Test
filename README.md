@@ -11,6 +11,7 @@ Full-stack calculator application: REST API in Kotlin/Micronaut and web client i
 - [Setup instructions](#setup-instructions)
 - [How to run the frontend and backend](#how-to-run-the-frontend-and-backend)
 - [Tests](#tests)
+- [CI/CD](#cicd)
 - [API documentation and examples](#api-documentation-and-examples)
 - [Error codes](#error-codes)
 - [Design decisions and assumptions](#design-decisions-and-assumptions)
@@ -62,10 +63,12 @@ Clone the repository (if needed) and open a terminal in the project root.
 Easiest way to run both backend and frontend together:
 
 ```bash
-# From the repository root
+# From the repository root (BuildKit enabled for faster builds)
 docker build -t sezzle-calculator .
 docker run -p 80:80 sezzle-calculator
 ```
+
+The image uses Alpine-based stages and multi-stage builds (~300MB). It includes a `HEALTHCHECK` that hits `/api/v1/health`.
 
 Open in browser: **http://localhost**
 
@@ -122,6 +125,17 @@ npm run test                 # Vitest (unit tests)
 npm run test:coverage        # Coverage
 npm run test:e2e             # E2E with Playwright (requires backend on 8080 and frontend on 3000)
 ```
+
+---
+
+## CI/CD
+
+Automatic tests run on every push and pull request:
+
+- **GitHub Actions** (`.github/workflows/ci.yml`): Runs backend tests (Gradle), frontend tests (Vitest), and frontend lint. Uploads JaCoCo coverage reports as artifacts.
+- **GitLab CI** (`.gitlab-ci.yml`): Same jobs on GitLab; backend and frontend tests run in parallel. JUnit reports are collected for the test results dashboard.
+
+Both pipelines run on `main`, `master`, and `develop`. Use branch protection to require passing CI before merging PRs.
 
 ---
 
@@ -185,7 +199,7 @@ Response: `{"result":5.0,"operation":"SQRT","timestamp":"..."}`
 
 - **Backend:** REST over JSON with a thin controller layer and a dedicated service for business logic. Validation and errors are centralized (global exception handler) with stable error codes (CALC_001–CALC_006) for client handling. OpenAPI/Swagger is used for documentation. Micronaut was chosen for a lightweight JVM API with good Kotlin support.
 - **Frontend:** Single-page app (React + TypeScript) with a reducer-based state for the calculator and a separate hook for API calls. The UI mimics a simple calculator keypad; backend performs all operations to keep logic and validation in one place. API base URL is configurable via env for local vs Docker/production.
-- **Docker:** One image runs both backend (fat JAR) and frontend (static files served by Nginx). Nginx proxies `/api` to the backend so the browser talks to a single origin; no CORS issues in that setup. Port 80 is used by default; another host port can be mapped if 80 is in use.
+- **Docker:** One image runs both backend (fat JAR) and frontend (static files served by Nginx). Nginx proxies `/api` to the backend so the browser talks to a single origin; no CORS issues in that setup. Port 80 is used by default; another host port can be mapped if 80 is in use. For production, set `CORS_ALLOWED_ORIGINS` (e.g. `-e CORS_ALLOWED_ORIGINS="https://app.example.com"`) instead of allowing any origin.
 - **Assumptions:** Backend and frontend are developed and versioned together. The API is internal to this app (no public multi-tenant API). Numbers are handled as doubles; edge cases (overflow, NaN, division by zero) are validated and return structured errors.
 
 ---

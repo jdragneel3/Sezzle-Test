@@ -1,0 +1,12 @@
+# Used when testing with environment "ratelimit" for low-limit scenarios
+ratelimit:
+  enabled: true
+  limit: 1
+  window-seconds: 60
+
+micronaut:
+  server:
+    port: -1
+  http:
+    client:
+      exception-on-error-status: false

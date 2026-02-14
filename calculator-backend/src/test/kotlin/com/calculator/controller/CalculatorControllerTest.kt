@@ -45,6 +45,14 @@ class CalculatorControllerTest(
     }
 
     @Test
+    fun `POST divide with valid input returns 200`() {
+        val request = HttpRequest.POST("/api/v1/divide", BinaryOperationRequest(10.0, 5.0))
+        val response = client.toBlocking().exchange(request, Map::class.java)
+        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(2.0, (response.body() as Map<*, *>)["result"])
+    }
+
+    @Test
     fun `POST divide with zero divisor returns 400 with CALC_001`() {
         val request = HttpRequest.POST("/api/v1/divide", BinaryOperationRequest(10.0, 0.0))
 
@@ -55,6 +63,14 @@ class CalculatorControllerTest(
         val body = exception.response.getBody(ErrorResponse::class.java).orElseThrow()
         assertEquals("CALC_001", body.errorCode)
         assertEquals("Division by zero", body.message)
+    }
+
+    @Test
+    fun `POST sqrt with valid input returns 200`() {
+        val request = HttpRequest.POST("/api/v1/sqrt", UnaryOperationRequest(25.0))
+        val response = client.toBlocking().exchange(request, Map::class.java)
+        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(5.0, (response.body() as Map<*, *>)["result"])
     }
 
     @Test
@@ -96,12 +112,32 @@ class CalculatorControllerTest(
     }
 
     @Test
-    fun `GET health returns 200 with UP status`() {
+    fun `POST sqrt with operand as string returns 400 with CALC_002`() {
+        val request = HttpRequest.POST("/api/v1/sqrt", """{"operand": "x"}""")
+            .contentType(io.micronaut.http.MediaType.APPLICATION_JSON_TYPE)
+
+        val exception = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, ErrorResponse::class.java)
+        }
+        assertEquals(HttpStatus.BAD_REQUEST, exception.response.status)
+        val body = exception.response.getBody(ErrorResponse::class.java).orElseThrow()
+        assertEquals("CALC_002", body.errorCode)
+    }
+
+    @Test
+    fun `GET health returns 200 with status version and JVM metrics`() {
         val response = client.toBlocking().exchange("/api/v1/health", Map::class.java)
         assertEquals(HttpStatus.OK, response.status)
         val body = response.body()
         assertNotNull(body)
-        assertEquals("UP", (body as Map<*, *>)["status"])
+        val map = body as Map<*, *>
+        assertEquals("UP", map["status"])
+        assertNotNull(map["version"])
+        val jvm = map["jvm"] as? Map<*, *>
+        assertNotNull(jvm)
+        assertNotNull((jvm!!["memory"] as Map<*, *>)["heap"])
+        assertNotNull((jvm["threads"] as Map<*, *>)["count"])
+        assertNotNull(jvm["uptimeSeconds"])
     }
 
     @Test
@@ -134,5 +170,70 @@ class CalculatorControllerTest(
         val response = client.toBlocking().exchange(request, Map::class.java)
         assertEquals(HttpStatus.OK, response.status)
         assertEquals(25.0, (response.body() as Map<*, *>)["result"])
+    }
+
+    @Test
+    fun `POST percentage with zero returns 0`() {
+        val request = HttpRequest.POST("/api/v1/percentage", BinaryOperationRequest(100.0, 0.0))
+        val response = client.toBlocking().exchange(request, Map::class.java)
+        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(0.0, (response.body() as Map<*, *>)["result"])
+    }
+
+    @Test
+    fun `POST divide with negative result`() {
+        val request = HttpRequest.POST("/api/v1/subtract", BinaryOperationRequest(5.0, 10.0))
+        val response = client.toBlocking().exchange(request, Map::class.java)
+        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(-5.0, (response.body() as Map<*, *>)["result"])
+    }
+
+    @Test
+    fun `POST power with overflow returns 400 with CALC_004`() {
+        val request = HttpRequest.POST("/api/v1/power", BinaryOperationRequest(Double.MAX_VALUE, 2.0))
+
+        val exception = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, ErrorResponse::class.java)
+        }
+        assertEquals(HttpStatus.BAD_REQUEST, exception.response.status)
+        val body = exception.response.getBody(ErrorResponse::class.java).orElseThrow()
+        assertEquals("CALC_004", body.errorCode)
+    }
+
+    @Test
+    fun `POST add with overflow returns 400 with CALC_004`() {
+        val request = HttpRequest.POST("/api/v1/add", BinaryOperationRequest(Double.MAX_VALUE, Double.MAX_VALUE))
+
+        val exception = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, ErrorResponse::class.java)
+        }
+        assertEquals(HttpStatus.BAD_REQUEST, exception.response.status)
+        val body = exception.response.getBody(ErrorResponse::class.java).orElseThrow()
+        assertEquals("CALC_004", body.errorCode)
+    }
+
+    @Test
+    fun `POST percentage with value over 100 returns 400 with CALC_005`() {
+        val request = HttpRequest.POST("/api/v1/percentage", BinaryOperationRequest(100.0, 150.0))
+
+        val exception = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, ErrorResponse::class.java)
+        }
+        assertEquals(HttpStatus.BAD_REQUEST, exception.response.status)
+        val body = exception.response.getBody(ErrorResponse::class.java).orElseThrow()
+        assertEquals("CALC_005", body.errorCode)
+    }
+
+    @Test
+    fun `POST with missing operand2 returns 400 with CALC_006`() {
+        val request = HttpRequest.POST("/api/v1/add", """{"operand1": 5}""")
+            .contentType(io.micronaut.http.MediaType.APPLICATION_JSON_TYPE)
+
+        val exception = assertThrows<HttpClientResponseException> {
+            client.toBlocking().exchange(request, ErrorResponse::class.java)
+        }
+        assertEquals(HttpStatus.BAD_REQUEST, exception.response.status)
+        val body = exception.response.getBody(ErrorResponse::class.java).orElseThrow()
+        assertEquals("CALC_006", body.errorCode)
     }
 }
